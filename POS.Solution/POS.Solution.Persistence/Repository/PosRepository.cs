@@ -26,9 +26,9 @@ namespace POS.Solution.Persistence.Repository
 
         public async Task Delete(Guid Id)
         {
-            var entityToDelete = await _context.Invoices.FindAsync(Id);
-            
-            if(entityToDelete != null)
+            var entityToDelete = await _context.Invoices.Where(x=> x.Id == Id).Include(x => x.InvoiceDetails).FirstOrDefaultAsync();
+
+            if (entityToDelete != null)
             {
                 _context.Invoices.Remove(entityToDelete);
                 _context.SaveChanges();

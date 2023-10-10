@@ -85,12 +85,12 @@ namespace POS.Solution.API.Controllers
 
 
         [HttpDelete("{id:guid}")]
-        public IActionResult Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id)
         {
 
             try
             {
-                _posService.Delete(id);
+               await _posService.Delete(id);
             }
             catch (Exception ex)
             {

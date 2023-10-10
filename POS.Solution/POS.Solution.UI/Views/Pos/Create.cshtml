@@ -1,82 +1,84 @@
 ﻿@model POS.Solution.Core.Entities.Invoice
 
-<h1>Point of Sale</h1>
 <form class="mt-3" id="invoice-form">
 
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-4">
             <div class="form-group">
-                <label asp-for="CustomerName"></label>
-                <input asp-for="CustomerName" class="form-control" required />
+                <label asp-for="CustomerName">Customer Name</label>
+                <input asp-for="CustomerName" class="form-control" required id="customerName"/>
                 <span asp-validation-for="CustomerName" style="color: #FF0000"></span>
             </div>
 
             <div class="form-group">
                 <label asp-for="Address"></label>
-                <input asp-for="Address" class="form-control" required />
+                <input asp-for="Address" class="form-control" required id="address"/>
                 <span asp-validation-for="Address" style="color: #FF0000"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Date"></label>
-                <input asp-for="Date" class="form-control" type="date" required />
+                <input asp-for="Date" class="form-control" type="date" required id="date"/>
                 <span asp-validation-for="Date" style="color: #FF0000"></span>
             </div>
         </div>
 
-        <div class="col-lg-6">
+        <div class="col-lg-3 offset-md-4">
             <div class="container justify-content-center">
 
-                <div class="form-group">
-                    <label for="product-name">Product</label>
-                    <select class="form-control" id="productName" required>
-                        @foreach (var product in ViewBag.Products)
-                        {
-                            <option value="@product.ProductName">@product.ProductName</option>
-                        }
-                    </select>
-                    <span class="text-danger field-validation-valid" data-valmsg-for="product-name" data-valmsg-replace="true"></span>
-                </div>
-
-                <div class="form-group">
-                    <label for="quantity">Quantity</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required />
-                    <span class="text-danger field-validation-valid" data-valmsg-for="quantity" data-valmsg-replace="true"></span>
-                </div>
-
-                <button type="button" class="p-4 mt-2 ml-2 btn btn-success" onclick="createInvoice()">Add Product</button>
+                <button type="button" class="p-4 mt-2 ml-2 btn btn-success" data-bs-toggle="modal" data-bs-target="#product-modal">Add Product</button>
             </div>
         </div>
     </div>
 
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">Product</th>
-                <th scope="col">Quantity</th>
-                <th scope="col">Amount</th>
-            </tr>
-        </thead>
-        <tbody class="productBody" id="productBody">
-            @if (Model.InvoiceDetails != null)
-            {
-                for (var i = 0; i < Model.InvoiceDetails.Count; i++)
-                {
+    <div class="row mt-5">
+        <div class="col-md-10 ">
+            <table class="table table-bordered">
+                <thead>
                     <tr>
-                        <th scope="row">@Model.InvoiceDetails[i].ProductName</th>
-                        <td>@Model.InvoiceDetails[i].Quantity</td>
-                        <td>@Model.InvoiceDetails[i].Amount</td>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Action</th>
                     </tr>
-                }
-            }
+                </thead>
+                <tbody class="Items" id="Items">
+                </tbody>
+            </table>
 
+        </div>
+    </div>
+    <div class="row">
+            <div class="col-md-12">
+        <br />
+            <div class="col-md-2 offset-md-8">
+            <label asp-for="TotalAmount">Total Amount</label>
+                <input type="text" asp-for="TotalAmount" class="form-control" placeholder="Total Amount" id="TotalAmount" readonly />
+            @Html.ValidationMessageFor(model => model.TotalAmount, "", new { @class = "text-danger" })
+        </div>
 
+            <div class="col-md-2 offset-md-8">
+            <label asp-for="GivenAmount">Given Amount</label>
+            <input type="text" asp-for="GivenAmount" id="GivenAmount" class="form-control" placeholder="Given Amount" />
+            @Html.ValidationMessageFor(model => model.GivenAmount, "", new { @class = "text-danger" })
 
-        </tbody>
-    </table>
+        </div>
 
+            <div class="col-md-2 offset-md-8">
+            <label asp-for="ChangeAmount">Change Amount</label>
+                <input type="text" asp-for="ChangeAmount" class="form-control" id="ChangeAmount" placeholder="Change Amount" readonly />
+            @Html.ValidationMessageFor(model => model.ChangeAmount, "", new { @class = "text-danger" })
+            <br />
+        </div>
 
-    <input type="submit" class="btn btn-outline-success" value="Save Invoice">
+            <div class="col-md-2 offset-md-8">
+            <input type="submit" value="Save Order" class="btn btn-success p-3" id="btnSubmit" />
+        </div>
+
+    </div>
+
+    </div>
+
 </form>
 
 <div class="modal fade" id="product-modal" tabindex="-1" aria-labelledby="product-modal-title" aria-hidden="true">
@@ -100,11 +102,9 @@
 
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
-                    <input type="number" class="form-control" id="quantity" name="quantity" required />
+                    <input type="number" class="form-control" id="quantity" name="quantity" required value="1"/>
                     <span class="text-danger field-validation-valid" data-valmsg-for="quantity" data-valmsg-replace="true"></span>
                 </div>
-
-
             </div>
 
             <div class="modal-footer">
@@ -117,20 +117,9 @@
 
 @section scripts {
 
+    <partial name="_ValidationScriptsPartial" />
 
     <script>
-
-
-
-        // Existing task index (for iterating over the existing tasks)
-        var existingInvoiceIndex = @Model.InvoiceDetails?.Count ?? 0;
-        // New task index (for indexing new tasks added on the client-side)
-        var newInvoiceIndex = existingInvoiceIndex;
-
-        // Initialize a JavaScript variable with the value of Model.MoldTasks
-        var invoices = @Html.Raw(Json.Serialize(Model.InvoiceDetails));
-
-
 
         function createInvoice() {
             var productName = $('#productName').val();
@@ -154,18 +143,22 @@
                         console.log(price);
 
 
-                        var newproduct = {
-                            ProductName: productName,
-                            Quantity: quantity,
-                            Amount: amount
-                        };
-                        if (!Array.isArray(invoices)) {
-                            invoices = [];
-                        }
-                        invoices.push(newproduct);
+                        var price = $("#Price").val();
 
-                        renderInvoiceTable();
+                        var row = `<tr>
+                                        <td class="productName">${productName}</td>
+                                        <td class="price">${data}</td>
+                                        <td class="quantity">${quantity}</td>
+                                        <td class="amount">${amount}</td>
+                                        <td>
+                                            <a class="btn btn-danger btn-sm btnDelete">
+                                                x
+                                            </a>
+                                        </td>
+                                    </tr>`;
 
+                        $('#Items').append(row);
+                        calculateSum();
 
                 $('#product-modal').modal('hide');
 
@@ -174,74 +167,86 @@
                         alert('Failed to retrieve price.');
                     }
                 });
-
-
-                
             }
         }
 
-        function removeInvoice(button) {
-            var row = $(button).closest('tr');
-            var rowIndex = row.index();
+        //total calculation
+        function calculateSum() {
+            var sum = 0;
+            // iterate through each td based on class and add the values
+            $(".amount").each(function () {
 
-            // Remove the task from the moldTasks list
-            invoices.splice(rowIndex, 1);
-
-            // Re-render the tasks table
-            renderInvoiceTable();
-        }
-
-        function renderInvoiceTable() {
-            $('#productBody').empty();
-            for (var i = 0; i < invoices.length; i++) {
-                var product = invoices[i];
-
-                console.log(product);
-                var productItem = `
-                                            <tr>
-                                                <td>
-                                                     ${product.ProductName}
-                                                </td>
-                                                  <td>
-                                                             ${product.Quantity}
-                                                    </td>
-                                                    <td>
-                                                                     ${product.Amount}
-                                                        </td>
-                                                <td>
-                                                    <button type="button" class="btn" onclick="removeInvoice(this)">x</button>
-                                                    <input type="hidden" name="MoldTasks.Index" value="${i}" />
-                                                </td>
-                                            </tr>`;
-
-                $('#productBody').append(productItem);
-            }
-        }
-
-
-        function submitForm() {
-
-            var $form = $('#invoice-form');
-            if ($form.valid()) {
-            // Serialize the form data and add the MoldTasksJson parameter
-                var formData = $('#invoice-form').serializeArray();
-            formData.push({ name: 'InvoiceDetailsJson', value: JSON.stringify(invoices });
-
-            $.ajax({
-                url: '@Url.Action("Create", "Pos")',
-                type: 'POST',
-                data: formData,
-                success: function (data) {
-                    // Handle success response here if needed
-                    window.location.href = '@Url.Action("Create", "Pos")';
-                },
-                error: function (xhr, textStatus, errorThrown) {
-                    // Handle error response here if needed
-                    console.log(xhr.responseText);
+                var value = $(this).text();
+                // add only if the value is number
+                if (!isNaN(value) && value.length !== 0) {
+                    sum += parseFloat(value);
                 }
             });
 
-         }
+            $('#TotalAmount').val(sum);
+            var a = $('#TotalAmount').val();
+            var b = $('#GivenAmount').val();
+            $('#ChangeAmount').val(a - b);
+        };
+
+        $('.amount').each(function () {
+            calculateSum();
+        });
+
+        // change amount
+        $('#GivenAmount').keyup(function () {
+            var a = $('#TotalAmount').val();
+            var b = $('#GivenAmount').val();
+            $('#ChangeAmount').val(a - b);
+        });
+
+        //remove button click event
+        $('#Items').on('click', '.btnDelete', function () {
+            $(this).parents('tr').remove();
+            calculateSum();
+        });
+
+        $("#btnSubmit").click(function () {
+
+            var $form = $('#invoice-form');
+            if ($form.valid()) {
+
+
+                var list = [];
+                $('#Items tr').each(function (index, ele) {
+                    var orderItem = {
+                        ProductName: $('.productName', this).text(),
+                        Price: parseFloat($('.price', this).text()),
+                        Quantity: parseInt($('.quantity', this).text()),
+                        Amount: parseFloat($('.amount', this).text())
+                    };
+                    list.push(orderItem);
+                });
+                console.log(list);
+                $.ajax({
+                    type: 'POST',
+                    url: '/Pos/Create',
+                    datatype: "Json",
+                    data: {
+                        CustomerName: $("#customerName").val(),
+                        Address: $("#address").val(),
+                        Date: $("#date").val(),
+                        TotalAmount: parseFloat($("#TotalAmount").val()),
+                        GivenAmount: parseFloat($("#GivenAmount").val()),
+                        ChangeAmount: parseFloat($("#ChangeAmount").val()),
+                        InvoiceDetails: list
+                    },
+                    success: function (data) {
+                        alert('Successfully saved');
+
+                    location.href = '@Url.Action("Create", "Pos")';
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            }
+        });
 
 
 

@@ -15,7 +15,13 @@ namespace POS.Solution.Core.Entities
         [Required]
         public string Address { get; set; } = string.Empty;
         [Required]
-        public DateTime Date { get; set; }
+        public DateTime Date { get; set; } = DateTime.UtcNow;
+        [Required]
+        public decimal TotalAmount { get; set; }
+        [Required]
+        public decimal GivenAmount { get; set; }
+        [Required]
+        public decimal ChangeAmount { get; set; }
 
         public virtual List<InvoiceDetails> InvoiceDetails { get; set; }
     }

@@ -1,0 +1,67 @@
+﻿@model POS.Solution.Core.Entities.Invoice
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 offset-md-1">
+            <div class="form-group">
+                <label asp-for="CustomerName">Customer Name : @Model.CustomerName</label>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Address">Address : @Model.Address</label>
+            </div>
+            <div class="form-group">
+                <label asp-for="Date">Date : @Model.Date</label>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-10 offset-md-1">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="Items" id="Items">
+                    @foreach(var item in Model.InvoiceDetails)
+                    {
+                        <tr>
+                            <td class="productName">@item.ProductName</td>
+                            <td class="price">@item.Price</td>
+                            <td class="quantity">@item.Quantity</td>
+                            <td class="amount">@item.Amount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <br />
+            <div class="col-md-2 offset-md-9">
+                <label asp-for="TotalAmount">Total Amount</label>
+                <input type="text" asp-for="TotalAmount" class="form-control" placeholder="Total Amount" id="TotalAmount" readonly />
+            </div>
+
+            <div class="col-md-2 offset-md-9">
+                <label asp-for="GivenAmount">Given Amount</label>
+                <input type="text" asp-for="GivenAmount" id="GivenAmount" class="form-control" placeholder="Given Amount" readonly />
+
+            </div>
+
+            <div class="col-md-2 offset-md-1">
+                <a type="button" value="Back" class="btn btn-primary" asp-action="Index" asp-controller="Pos" >Back</a>
+            </div>
+
+        </div>
+
+    </div>
+</div>

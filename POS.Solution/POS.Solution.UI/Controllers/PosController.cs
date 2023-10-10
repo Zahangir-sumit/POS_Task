@@ -54,24 +54,24 @@ namespace POS.Solution.UI.Controllers
             return View();
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
 
-            //var response = await _client.GetAsync("Pos/GetProducts/");
+            var response = await _client.GetAsync("Pos/GetProducts/");
 
-            //if (response.IsSuccessStatusCode)
-            //{
-            //    var data = response.Content.ReadAsStringAsync().Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var data = response.Content.ReadAsStringAsync().Result;
 
-            //    var products = JsonConvert.DeserializeObject<Product>(data);
+                var products = JsonConvert.DeserializeObject<List<Product>>(data);
 
-            //    ViewBag.Products = products;
-            //}
+                ViewBag.Products = products;
+            }
 
 
-           
 
-            ViewBag.Products = productList;
+
+            //ViewBag.Products = productList;
 
             var model = new Invoice
             {
@@ -82,19 +82,20 @@ namespace POS.Solution.UI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Invoice model, string InvoiceDetailsJson)
+        public async Task<IActionResult> Create(Invoice model)
         {
             try
             {
 
-                model.InvoiceDetails = JsonConvert.DeserializeObject<List<InvoiceDetails>>(InvoiceDetailsJson);
+                //model.InvoiceDetails = JsonConvert.DeserializeObject<List<InvoiceDetails>>(InvoiceDetailsJson);
 
-
+                model.Id = Guid.NewGuid();
+                var ser = JsonConvert.SerializeObject(model);
                 var response = await _client.PostAsJsonAsync("Pos/Create", model);
                 if (response.IsSuccessStatusCode)
                 {
                     var result = response.Content.ReadAsStringAsync().Result;
-                    return RedirectToAction("Create");
+                    return Ok();
                 }
                 else
                 {
@@ -154,13 +155,36 @@ namespace POS.Solution.UI.Controllers
             }
             return View(model);
         }
-
-        [HttpPost]
+        [HttpGet]
         public async Task<IActionResult> Delete(Guid Id)
         {
             try
             {
-                var response = await _client.DeleteAsync("Department/" + Id.ToString());
+                var response = await _client.GetAsync("Pos/GetInvoice/" + Id.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    var Json = await response.Content.ReadAsStringAsync();
+
+                    var invoice = JsonConvert.DeserializeObject<Invoice>(Json);
+                    return View(invoice);
+                }
+                else
+                {
+                    return View("Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return View("Error");
+            }
+        }
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirm(Guid Id)
+        {
+            try
+            {
+                var response = await _client.DeleteAsync("Pos/" + Id.ToString());
                 if (response.IsSuccessStatusCode)
                 {
                     return RedirectToAction("Index");
@@ -180,9 +204,24 @@ namespace POS.Solution.UI.Controllers
         [HttpGet("GetPrice")]
         public async Task<IActionResult> GetPrice(string productName)
         {
-            var product = productList.Where(x => x.ProductName == productName).FirstOrDefault();
+            var response = await _client.GetAsync("Pos/GetProducts/");
 
-            return Json(product.Price);
+            if (response.IsSuccessStatusCode)
+            {
+                var data = response.Content.ReadAsStringAsync().Result;
+
+                var products = JsonConvert.DeserializeObject<List<Product>>(data);
+
+                if (products.Count() > 0)
+                {
+                    var product = products?.Where(x => x.ProductName == productName).FirstOrDefault();
+
+                    return Json(product.Price);
+                }
+
+            }
+
+            return Json(0);
         }
 
 

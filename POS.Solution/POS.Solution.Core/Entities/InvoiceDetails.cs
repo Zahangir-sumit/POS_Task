@@ -11,13 +11,15 @@ namespace POS.Solution.Core.Entities
     {
         public Guid Id { get; set; }
         [Required]
-        public string ProductName { get; set; }
+        public string ProductName { get; set; } = string.Empty;
         [Required]
         public int Quantity { get; set; }
+        [Required]
+        public decimal Price { get; set; }
         [Required]
         public decimal Amount { get; set; }
 
         public Guid InvoiceId { get; set; }
-        public virtual Invoice Invoice { get; set; }
+        //public virtual Invoice Invoice { get; set; }
     }
 }
